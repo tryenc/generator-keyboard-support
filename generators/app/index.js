@@ -13,7 +13,7 @@ module.exports = class extends Generator {
   prompting() {
     this.prompt([
       {
-        type: "checkbox",
+        type: "list",
         name: "controls",
         message:
           "What kind of control(s) do you want to generate tests for?",
@@ -48,12 +48,6 @@ module.exports = class extends Generator {
           return answers.controls.indexOf(LISTBOX) > -1;
         }
       },
-      /* For a listbox, I need to know where the following are:
-        first
-        second
-        last
-        I may not need to know how many options there are
-      */
       {
         type: "input",
         name: "listboxQty",
@@ -89,28 +83,6 @@ module.exports = class extends Generator {
       this.listboxQty = answers.listboxQty;
       this.radioGroupUrl = answers.radioGroupUrl;
       this.radioGroupQty = answers.radioGroupQty;
-
-      this._checkboxSelectorsPrompt(answers.checkboxQty);
     });
-  }
-  _checkboxSelectorsPrompt(qty) {
-    if (!this.checkboxSelectors || this.checkboxSelectors.length < qty) {
-      const checkboxIndex = this.checkboxSelectors ? this.checkboxSelectors.length + 1 : '1';
-
-      this.prompt([{
-        type: 'input',
-        name: 'checkboxSelector',
-        message: `What selector should be used to target checkbox #${checkboxIndex}`,
-      }])
-      .then(answers => {
-        if (!this.checkboxSelectors) {
-          this.checkboxSelectors = [answers.checkboxSelector];
-        } else {
-          this.checkboxSelectors.push(answers.checkboxSelector);
-        }
-
-        this._checkboxSelectorsPrompt(this.checkboxQty);
-      });
-    }
   }
 };
