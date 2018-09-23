@@ -1,0 +1,20 @@
+{
+  "name": "generator-keyboard-support",
+  "version": "0.1.0",
+  "description": "Generates test suites to verify adequate keyboard support for common web-based controls.",
+  "files": [
+    "generators"
+  ],
+  "keywords": [
+    "yeoman-generator"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chris Tryens",
+  "license": "ISC",
+  "dependencies": {
+    "yeoman-generator": "^3.1.1"
+  }
+}
