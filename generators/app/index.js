@@ -1,8 +1,14 @@
 const CHECKBOX = 'checkbox';
 const LISTBOX = 'listbox';
-const RADIOGROUP = 'radio-group';
+const RADIOGROUP = 'radioGroup';
 
 const validate = require('./validators.js');
+
+const listboxPrompts = require(
+  './prompts/listbox_prompts.js'
+);
+const radioGroupPrompts = require('./prompts/radio_group_prompts.js');
+
 const Generator = require('yeoman-generator');
 
 module.exports = class extends Generator {
@@ -13,89 +19,55 @@ module.exports = class extends Generator {
   prompting() {
     const done = this.async();
     this.prompt([
-      // {
-      //   type: 'input',
-      //   name: 'featurePath',
-      //   message: 'Specify the path to the directory where you want to store the feature files',
-      //   default: 'features',
-      //   required: true,
-      //   store: true,
-      // },
-      // {
-      //   type: 'input',
-      //   name: 'stepsPath',
-      //   message: 'Specify the path to the directory where you want to store the step definition files',
-      //   default: 'step-definitions',
-      //   required: true,
-      //   store: true,
-      // },
       {
         type: "list",
         name: "controls",
         message:
           "What kind of control(s) do you want to generate tests for?",
-        choices: [LISTBOX]
+        choices: [LISTBOX, RADIOGROUP]
       },
-      {
-        type: "input",
-        name: "listboxUrl",
-        message:
-          'At what url can we find the listbox to test? Urls beginning with "/", will be appended to the baseUrl defined in the wdio configuration file.',
-        // validate: validate.url,
-        when: function(answers) {
-          return answers.controls.indexOf(LISTBOX) > -1;
-        }
-      },
-      {
-        type: "input",
-        name: "listboxQty",
-        message: "How many options are in this listbox?",
-        validate: validate.qty,
-        when: function(answers) {
-          return answers.listboxUrl;
-        }
-      },
-      {
-        type: "input",
-        name: "listboxSelectorFirst",
-        message:
-          "What selector should be used to target the first option in the listbox?",
-      },
-      {
-        type: "input",
-        name: "listboxSelectorSecond",
-        message:
-          "What selector should be used to target the second option in the listbox?",
-        when: function(answers) {
-          const qtyAsNum = Number(answers.listboxQty);
-          return qtyAsNum > 2;
-        }
-      },
-      {
-        type: "input",
-        name: "listboxSelectorLast",
-        message:
-          "What selector should be used to target the last option in the listbox?",
-      }
+      ...listboxPrompts,
+      ...radioGroupPrompts,
     ]).then(answers => {
+      this.controls = answers.controls;
       this.listboxUrl = answers.listboxUrl;
-      this.listboxQty = answers.listboxQty;
-      this.listboxSelectorFirst = answers.listboxSelectorFirst;
-      this.listboxSelectorLast = answers.listboxSelectorLast;
-      this.listboxSelectorSecond = answers.listboxSelectorSecond ?
-        answers.listboxSelectorSecond : answers.listboxSelectorLast;
+      this.listboxSelector = answers.listboxSelector;
+      this.listboxHomeEndSupport = answers.listboxHomeEndSupport;
       done();
     });
   }
   writing() {
-    this.fs.copyTpl(
-      this.templatePath("listbox_down.feature"),
-      this.destinationPath("features/listbox/listbox_down.feature"),
-      {
-        listboxUrl: this.listboxUrl,
-        listboxSelectorFirst: this.listboxSelectorFirst,
-        listboxSelectorSecond: this.listboxSelectorSecond
-      }
+    this.fs.copy(
+      this.templatePath("support/**"),
+      this.destinationPath("support/")
     );
+    this.fs.copy(
+      this.templatePath("step-definitions/given.js"),
+      this.destinationPath("features/step-definitions/given.js")
+    );
+    this.fs.copy(
+      this.templatePath("step-definitions/then.js"),
+      this.destinationPath("features/step-definitions/then.js")
+    );
+    this.fs.copy(
+      this.templatePath("step-definitions/when.js"),
+      this.destinationPath("features/step-definitions/when.js")
+    );
+
+    if (this.controls.indexOf(LISTBOX) > -1) {
+      this.fs.copy(
+        this.templatePath("step-definitions/listbox_steps.js"),
+        this.destinationPath("features/step-definitions/listbox_steps.js")
+      );
+      this.fs.copyTpl(
+        this.templatePath("features/listbox_keyboard_interaction.feature"),
+        this.destinationPath("features/listbox_keyboard_interaction.feature"),
+        {
+          listboxUrl: this.listboxUrl,
+          listboxSelector: this.listboxSelector,
+          listboxHomeEndSupport: this.listboxHomeEndSupport
+        }
+      );
+    }
   }
 };
